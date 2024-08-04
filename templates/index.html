@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio</title>
+</head>
+<body>
+    <h1>Bienvenido al Juego</h1>
+    {% if 'username' in session %}
+        <p>Hola, {{ session['username'] }}!</p>
+        <a href="{{ url_for('game') }}">Empezar el juego</a>
+        <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+    {% else %}
+        <a href="{{ url_for('login') }}">Iniciar sesión</a>
+        <a href="{{ url_for('register') }}">Registrarse</a>
+    {% endif %}
+</body>
+</html>

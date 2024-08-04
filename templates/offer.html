@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deal or No Deal</title>
+</head>
+<body>
+    <h1>Oferta del Banquero</h1>
+    <p>El banquero ofrece: ${{ oferta|floatformat:2 }}</p>
+    <form action="{{ url_for('offer') }}" method="post">
+        <button name="decision" value="deal">Deal</button>
+        <button name="decision" value="no_deal">No Deal</button>
+    </form>
+</body>
+</html>

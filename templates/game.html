@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deal or No Deal</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const submitButton = document.querySelector('button[type="submit"]');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
+                    const uncheckedCount = checkboxes.length - checkedCount;
+                    
+                    if (checkedCount >= {{ num_maletines }}) {
+                        checkboxes.forEach(box => {
+                            if (!box.checked) {
+                                box.disabled = true;
+                            }
+                        });
+                        submitButton.disabled = false;
+                    } else {
+                        checkboxes.forEach(box => box.disabled = false);
+                        submitButton.disabled = true;
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Ronda {{ ronda }}</h1>
+    <form action="{{ url_for('game') }}" method="post">
+        <p>Seleccione {{ num_maletines }} maletines para abrir:</p>
+        {% for maletin in maletines %}
+            <input type="checkbox" id="maletin{{ maletin }}" name="maletines" value="{{ maletin + 1 }}">
+            <label for="maletin{{ maletin }}">{{ maletin + 1 }}</label>
+        {% endfor %}
+        <button type="submit" disabled>Abrir Maletines</button>
+    </form>
+</body>
+</html>
