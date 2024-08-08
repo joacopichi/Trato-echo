@@ -5,12 +5,6 @@ import random
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 
-usuarios = {}
-
-valores = [0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750,
-           1000, 5000, 10000, 25000, 50000, 75000, 100000, 200000,
-           300000, 400000, 500000, 750000, 1000000]
-
 def calcular_oferta(valores_restantes):
     return sum(valores_restantes) / len(valores_restantes) * random.uniform(0.75, 1.25)
 
@@ -25,12 +19,12 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username in usuarios:
+        if username in session.get('usuarios', {}):
             flash('El usuario ya existe.', 'error')
-            return redirect(url_for('register'))
-        usuarios[username] = generate_password_hash(password)
-        flash('Registro exitoso. Puedes iniciar sesión ahora.', 'success')
-        return redirect(url_for('login'))
+        else:
+            session.setdefault('usuarios', {})[username] = generate_password_hash(password)
+            flash('Registro exitoso. Puedes iniciar sesión ahora.', 'success')
+            return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -38,11 +32,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username not in usuarios or not check_password_hash(usuarios[username], password):
-            flash('Nombre de usuario o contraseña incorrectos.', 'error')
-            return redirect(url_for('login'))
-        session['username'] = username
-        return redirect(url_for('select_maletin'))
+        usuarios = session.get('usuarios', {})
+        if username in usuarios and check_password_hash(usuarios[username], password):
+            session['username'] = username
+            return redirect(url_for('select_maletin'))
+        flash('Nombre de usuario o contraseña incorrectos.', 'error')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -56,11 +50,12 @@ def select_maletin():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        maletin = int(request.form['maletin']) - 1
-        session['valores'] = valores.copy()
+        session['valores'] = [0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750,
+                              1000, 5000, 10000, 25000, 50000, 75000, 100000, 200000,
+                              300000, 400000, 500000, 750000, 1000000]
         random.shuffle(session['valores'])
-        session['maletin_jugador'] = maletin
-        session['valores_restantes'] = session['valores'].copy()
+        session['maletin_jugador'] = int(request.form['maletin']) - 1
+        session['valores_restantes'] = session['valores'][:]
         session['valores_restantes'].pop(session['maletin_jugador'])
         session['maletines'] = list(range(26))
         session['maletines'].remove(session['maletin_jugador'])
@@ -81,36 +76,38 @@ def game():
         if len(seleccionados) != session['num_maletines']:
             flash(f"Debe seleccionar exactamente {session['num_maletines']} maletines.", 'error')
             return redirect(url_for('game'))
-        
+
         for maletin in seleccionados:
-            valor = session['valores'][maletin]
-            session['valores_restantes'].remove(valor)
-            session['maletines'].remove(maletin)
-            session['maletines_abiertos'].append((maletin, valor))
-        
+            if maletin in session['maletines']:
+                valor = session['valores'][maletin]
+                session['valores_restantes'].remove(valor)
+                session['maletines'].remove(maletin)
+                session['maletines_abiertos'].append((maletin + 1, valor))
+
         session['num_maletines'] -= len(seleccionados)
-        
+
         if session['num_maletines'] == 0:
             session['ronda'] += 1
             if session['ronda'] <= 5:
                 session['num_maletines'] = 6 - session['ronda'] + 1
             else:
                 session['num_maletines'] = 1
-        
-        if session['ronda'] > 10:
-            return redirect(url_for('final'))
 
-        oferta = calcular_oferta(session['valores_restantes'])
-        session['oferta'] = oferta
-        return render_template('offer.html', oferta=oferta)
-    
+            if session['ronda'] > 10:
+                return redirect(url_for('final'))
+
+            oferta = calcular_oferta(session['valores_restantes'])
+            session['oferta'] = f"{oferta:,.2f}"
+
+            return render_template('offer.html', oferta=session['oferta'])
+
     return render_template('game.html', ronda=session['ronda'], num_maletines=session['num_maletines'], maletines=session['maletines'], maletines_abiertos=session['maletines_abiertos'])
 
 @app.route('/offer', methods=['POST'])
 def offer():
     if 'username' not in session:
         return redirect(url_for('login'))
-
+       
     decision = request.form['decision']
     if decision == 'deal':
         return render_template('result.html', result=f"Ha aceptado la oferta de ${session['oferta']:,.2f}.")
@@ -127,10 +124,7 @@ def final():
 
     if request.method == 'POST':
         decision = request.form['final_decision']
-        if decision == 'switch':
-            final_valor = session['valores_restantes'][0]
-        else:
-            final_valor = session['valores'][session['maletin_jugador']]
+        final_valor = session['valores_restantes'][0] if decision == 'switch' else session['valores'][session['maletin_jugador']]
         return render_template('result.html', result=f"Usted ha ganado ${final_valor:,.2f}.")
 
     return render_template('final.html', maletin_jugador=session['valores'][session['maletin_jugador']], ultimo_valor=session['valores_restantes'][0])
