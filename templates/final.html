@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Deal or No Deal</title>
+    <title>Final</title>
 </head>
 <body>
-    <h1>Decisión Final</h1>
-    <p>Su maletín inicial tiene: ${{ maletin_jugador|floatformat:2 }}</p>
-    <p>El último maletín en el podio tiene: ${{ ultimo_valor|floatformat:2 }}</p>
+    <h1>Fin del Juego</h1>
+    <p>El contenido del maletín que elegiste es: ${{ maletin_jugador }}</p>
+    <p>El último valor restante es: ${{ ultimo_valor }}</p>
     <form action="{{ url_for('final') }}" method="post">
-        <button name="final_decision" value="keep">Quedarse con su maletín inicial</button>
-        <button name="final_decision" value="switch">Cambiar al último maletín</button>
+        <button type="submit" name="final_decision" value="switch">Cambiar maletín</button>
+        <button type="submit" name="final_decision" value="keep">Mantener maletín</button>
     </form>
 </body>
 </html>

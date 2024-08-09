@@ -2,14 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Oferta del Banquero</title>
+    <title>Oferta</title>
 </head>
 <body>
-    <h1>Oferta del Banquero</h1>
-    <p>El banco te ofrece: ${{ oferta }}</p>
-    <form method="POST" action="{{ url_for('offer') }}">
-        <button type="submit" name="decision" value="deal">Aceptar oferta</button>
-        <button type="submit" name="decision" value="no deal">Rechazar oferta</button>
+    <h1>Oferta de la Ronda {{ ronda }}</h1>
+    <p>La oferta es: ${{ oferta }}</p>
+    <form action="{{ url_for('offer') }}" method="post">
+        <button type="submit" name="decision" value="deal">Aceptar Oferta</button>
+        <button type="submit" name="decision" value="no_deal">Rechazar Oferta</button>
     </form>
+
+    <h2>Maletines Abiertos</h2>
+    <ul>
+        {% for maletin, valor in maletines_abiertos %}
+            <li>Maletín {{ maletin }}: ${{ valor }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

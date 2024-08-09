@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Deal or No Deal</title>
+    <title>Trato Hecho</title>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -39,5 +39,14 @@
         {% endfor %}
         <button type="submit" disabled>Abrir Maletines</button>
     </form>
+
+    {% if contenidos %}
+        <h2>Contenido de los Maletines Seleccionados</h2>
+        <ul>
+            {% for maletin, contenido in contenidos.items() %}
+                <li>Maletín {{ maletin }}: {{ contenido }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </body>
 </html>

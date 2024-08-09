@@ -99,7 +99,7 @@ def game():
             oferta = calcular_oferta(session['valores_restantes'])
             session['oferta'] = f"{oferta:,.2f}"
 
-            return render_template('offer.html', oferta=session['oferta'])
+            return render_template('offer.html', oferta=session['oferta'], maletines_abiertos=session['maletines_abiertos'])
 
     return render_template('game.html', ronda=session['ronda'], num_maletines=session['num_maletines'], maletines=session['maletines'], maletines_abiertos=session['maletines_abiertos'])
 
@@ -110,7 +110,7 @@ def offer():
        
     decision = request.form['decision']
     if decision == 'deal':
-        return render_template('result.html', result=f"Ha aceptado la oferta de ${session['oferta']:,.2f}.")
+        return render_template('result.html', result=f"Ha aceptado la oferta de ${session['oferta']}.")
     else:
         if session['ronda'] > 10:
             return redirect(url_for('final'))
