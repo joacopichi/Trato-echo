@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from utiles import calcular_oferta, registrar_partida, inicializar_juego
 import random
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
-
-def calcular_oferta(valores_restantes):
-    return sum(valores_restantes) / len(valores_restantes) * random.uniform(0.75, 1.25)
 
 @app.route('/')
 def index():
@@ -50,18 +48,10 @@ def select_maletin():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        session['valores'] = [0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750,
-                              1000, 5000, 10000, 25000, 50000, 75000, 100000, 200000,
-                              300000, 400000, 500000, 750000, 1000000]
-        random.shuffle(session['valores'])
+        inicializar_juego()
         session['maletin_jugador'] = int(request.form['maletin']) - 1
-        session['valores_restantes'] = session['valores'][:]
         session['valores_restantes'].pop(session['maletin_jugador'])
-        session['maletines'] = list(range(26))
         session['maletines'].remove(session['maletin_jugador'])
-        session['ronda'] = 1
-        session['num_maletines'] = 6
-        session['maletines_abiertos'] = []
         return redirect(url_for('game'))
 
     return render_template('select_maletin.html')
@@ -102,7 +92,6 @@ def game():
             return render_template('offer.html', oferta=session['oferta'], maletines_abiertos=session['maletines_abiertos'])
 
     return render_template('game.html', ronda=session['ronda'], num_maletines=session['num_maletines'], maletines=session['maletines'], maletines_abiertos=session['maletines_abiertos'])
-
 
 @app.route('/offer', methods=['POST'])
 def offer():
