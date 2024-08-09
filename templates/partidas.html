@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Partidas</title>
+</head>
+<body>
+    <h1>Registro de Partidas de {{ session['username'] }}</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, estado in enumerate(partidas, start=1) %}
+                <tr>
+                    <td>{{ index }}</td>
+                    <td>{{ estado }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('index') }}">Volver al Inicio</a>
+</body>
+</html>

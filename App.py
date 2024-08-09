@@ -122,12 +122,31 @@ def final():
     if 'username' not in session:
         return redirect(url_for('login'))
 
+    maletin_jugador_valor = session['valores'][session['maletin_jugador']]
+    ultimo_valor = session['valores_restantes'][0] if session.get('final_decision') == 'switch' else maletin_jugador_valor
+
     if request.method == 'POST':
         decision = request.form['final_decision']
-        final_valor = session['valores_restantes'][0] if decision == 'switch' else session['valores'][session['maletin_jugador']]
-        return render_template('result.html', result=f"Usted ha ganado ${final_valor:,.2f}.")
+        if decision == 'switch':
+            final_valor = session['valores_restantes'][0]
+        else:
+            final_valor = maletin_jugador_valor
 
-    return render_template('final.html', maletin_jugador=session['valores'][session['maletin_jugador']], ultimo_valor=session['valores_restantes'][0])
+        registrar_partida(session['username'], 'Finalizada')
+
+        return render_template('result.html', result=f"Usted ha ganado ${final_valor:,.2f}.",
+                               maletin_jugador_valor=maletin_jugador_valor,
+                               ultimo_valor=ultimo_valor)
+
+    return render_template('final.html', maletin_jugador_valor=maletin_jugador_valor, ultimo_valor=ultimo_valor)
+
+@app.route('/partidas')
+def partidas():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    partidas_usuario = session.get('partidas', {}).get(session['username'], [])
+    return render_template('partidas.html', partidas=partidas_usuario)
 
 if __name__ == '__main__':
     app.run(debug=True)
