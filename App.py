@@ -103,6 +103,7 @@ def game():
 
     return render_template('game.html', ronda=session['ronda'], num_maletines=session['num_maletines'], maletines=session['maletines'], maletines_abiertos=session['maletines_abiertos'])
 
+
 @app.route('/offer', methods=['POST'])
 def offer():
     if 'username' not in session:
