@@ -2,26 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Final de la Partida</title>
+    <title>Decisión Final</title>
 </head>
 <body>
-    <h1>Final de la Partida</h1>
-    <p>Elige uno de los siguientes maletines:</p>
-    <ul>
-        <li>
-            <input type="radio" id="maletin_inicial" name="final_decision" value="no_switch" checked>
-            <label for="maletin_inicial">Maletín elegido al inicio</label>
-        </li>
-        <li>
-            <input type="radio" id="maletin_final" name="final_decision" value="switch">
-            <label for="maletin_final">Último maletín restante</label>
-        </li>
-    </ul>
-    <form action="{{ url_for('final') }}" method="post">
-        <button type="submit">Confirmar</button>
-    </form>
+    <div class="container">
+        <h1>Última Decisión</h1>
+        <p>El valor de tu maletín es de: ${{ maletin_jugador_valor }}</p>
+        <p>El último valor restante es: ${{ ultimo_valor }}</p>
 
-    <a href="{{ url_for('select_maletin') }}">Volver a jugar</a>
-    <a href="{{ url_for('index') }}">Volver al Inicio</a>
+        <form action="{{ url_for('final') }}" method="post">
+            <p>¿Deseas cambiar tu maletín?</p>
+            <button type="submit" name="final_decision" value="keep" class="btn">Mantener</button>
+            <button type="submit" name="final_decision" value="switch" class="btn">Cambiar</button>
+        </form>
+    </div>
 </body>
 </html>

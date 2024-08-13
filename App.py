@@ -100,7 +100,12 @@ def offer():
        
     decision = request.form['decision']
     if decision == 'deal':
-        return render_template('result.html', result=f"Ha aceptado la oferta de ${session['oferta']}.")
+        maletin_jugador_valor = session['valores'][session['maletin_jugador']]
+        oferta_aceptada = session['oferta']
+        return render_template('result.html', 
+                               result=f"Ha aceptado la oferta de ${oferta_aceptada}.",
+                               maletin_jugador_valor=f"{maletin_jugador_valor:,.2f}",
+                               oferta_aceptada=f"{oferta_aceptada}")
     else:
         if session['ronda'] > 10:
             return redirect(url_for('final'))
@@ -113,23 +118,30 @@ def final():
         return redirect(url_for('login'))
 
     maletin_jugador_valor = session['valores'][session['maletin_jugador']]
-    ultimo_valor = session['valores_restantes'][0] if session.get('final_decision') == 'switch' else maletin_jugador_valor
+    
+    if session['valores_restantes']:
+        ultimo_valor = session['valores_restantes'][0]
+    else:
+        ultimo_valor = None
 
     if request.method == 'POST':
         decision = request.form['final_decision']
         if decision == 'switch':
-            final_valor = session['valores_restantes'][0]
+            maletin_final_valor = ultimo_valor if ultimo_valor is not None else maletin_jugador_valor
+            maletin_no_seleccionado_valor = maletin_jugador_valor
         else:
-            final_valor = maletin_jugador_valor
+            maletin_final_valor = maletin_jugador_valor
+            maletin_no_seleccionado_valor = ultimo_valor if ultimo_valor is not None else maletin_jugador_valor
 
         registrar_partida(session['username'], 'Finalizada')
 
-        return render_template('result.html', result=f"Usted ha ganado ${final_valor:,.2f}.",
-                               maletin_jugador_valor=maletin_jugador_valor,
-                               ultimo_valor=ultimo_valor)
+        return render_template('result.html', 
+                               result=f"Usted ha ganado ${maletin_final_valor:,.2f}.",
+                               maletin_final_valor=f"{maletin_final_valor:,.2f}",
+                               maletin_no_seleccionado_valor=f"{maletin_no_seleccionado_valor:,.2f}")
 
-    return render_template('final.html', maletin_jugador_valor=maletin_jugador_valor, ultimo_valor=ultimo_valor)
-
+    return render_template('final.html')
+    
 @app.route('/partidas')
 def partidas():
     if 'username' not in session:
