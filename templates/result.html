@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Resultado Final</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='games.css') }}">
 </head>
 <body>
     <div class="container">
@@ -10,11 +11,6 @@
         <p>{{ result }}</p>
 
         <h2>Detalles de los maletines:</h2>
-        <ul>
-            <li>Valor del maletín seleccionado: ${{ maletin_final_valor }}</li>
-            <li>Valor del maletín no seleccionado: ${{ maletin_no_seleccionado_valor }}</li>
-        </ul>
-
         <a href="{{ url_for('index') }}" class="btn">Volver al inicio</a>
     </div>
 </body>

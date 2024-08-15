@@ -17,12 +17,15 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username in session.get('usuarios', {}):
+        usuarios = session.setdefault('usuarios', {})
+
+        if username in usuarios:
             flash('El usuario ya existe.', 'error')
         else:
-            session.setdefault('usuarios', {})[username] = generate_password_hash(password)
+            usuarios[username] = generate_password_hash(password)
             flash('Registro exitoso. Puedes iniciar sesión ahora.', 'success')
             return redirect(url_for('login'))
+
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -31,10 +34,12 @@ def login():
         username = request.form['username']
         password = request.form['password']
         usuarios = session.get('usuarios', {})
+
         if username in usuarios and check_password_hash(usuarios[username], password):
             session['username'] = username
             return redirect(url_for('select_maletin'))
         flash('Nombre de usuario o contraseña incorrectos.', 'error')
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -49,9 +54,13 @@ def select_maletin():
 
     if request.method == 'POST':
         inicializar_juego()
-        session['maletin_jugador'] = int(request.form['maletin']) - 1
-        session['valores_restantes'].pop(session['maletin_jugador'])
-        session['maletines'].remove(session['maletin_jugador'])
+        maletin_jugador = int(request.form['maletin']) - 1
+
+        session['maletin_jugador'] = maletin_jugador
+        session['valores_restantes'].pop(maletin_jugador)
+        session['maletines'].remove(maletin_jugador)
+        session['maletines_seleccionados'] = [maletin_jugador]
+
         return redirect(url_for('game'))
 
     return render_template('select_maletin.html')
@@ -63,6 +72,7 @@ def game():
 
     if request.method == 'POST':
         seleccionados = [int(x) - 1 for x in request.form.getlist('maletines')]
+        
         if len(seleccionados) != session['num_maletines']:
             flash(f"Debe seleccionar exactamente {session['num_maletines']} maletines.", 'error')
             return redirect(url_for('game'))
@@ -73,22 +83,18 @@ def game():
                 session['valores_restantes'].remove(valor)
                 session['maletines'].remove(maletin)
                 session['maletines_abiertos'].append((maletin + 1, valor))
+                session['maletines_seleccionados'].append(maletin)
 
         session['num_maletines'] -= len(seleccionados)
 
         if session['num_maletines'] == 0:
             session['ronda'] += 1
-            if session['ronda'] <= 5:
-                session['num_maletines'] = 6 - session['ronda'] + 1
-            else:
-                session['num_maletines'] = 1
+            session['num_maletines'] = max(1, 6 - session['ronda'] + 1)
 
             if session['ronda'] > 10:
                 return redirect(url_for('final'))
 
-            oferta = calcular_oferta(session['valores_restantes'])
-            session['oferta'] = f"{oferta:,.2f}"
-
+            session['oferta'] = f"{calcular_oferta(session['valores_restantes']):,.2f}"
             return render_template('offer.html', oferta=session['oferta'], maletines_abiertos=session['maletines_abiertos'])
 
     return render_template('game.html', ronda=session['ronda'], num_maletines=session['num_maletines'], maletines=session['maletines'], maletines_abiertos=session['maletines_abiertos'])
@@ -97,51 +103,44 @@ def game():
 def offer():
     if 'username' not in session:
         return redirect(url_for('login'))
-       
+    
     decision = request.form['decision']
     if decision == 'deal':
         maletin_jugador_valor = session['valores'][session['maletin_jugador']]
         oferta_aceptada = session['oferta']
         return render_template('result.html', 
-                               result=f"Ha aceptado la oferta de ${oferta_aceptada}.",
-                               maletin_jugador_valor=f"{maletin_jugador_valor:,.2f}",
-                               oferta_aceptada=f"{oferta_aceptada}")
-    else:
-        if session['ronda'] > 10:
-            return redirect(url_for('final'))
-        else:
-            return redirect(url_for('game'))
+                               result=f"Ha aceptado la oferta de ${oferta_aceptada}.")
+    return redirect(url_for('final' if session['ronda'] > 10 else 'game'))
 
 @app.route('/final', methods=['GET', 'POST'])
 def final():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    maletin_jugador_valor = session['valores'][session['maletin_jugador']]
-    
-    if session['valores_restantes']:
-        ultimo_valor = session['valores_restantes'][0]
-    else:
-        ultimo_valor = None
+    valores = session['valores']
+    maletin_jugador_valor = valores[session['maletin_jugador']]
+
+    valores_seleccionados = [valores[i] for i in session.get('maletines_seleccionados', [])]
+    valores_faltantes = [v for v in valores if v not in valores_seleccionados]
+
+    maletin_no_seleccionado_valor = valores_faltantes[0] if len(valores_faltantes) == 1 else None
 
     if request.method == 'POST':
         decision = request.form['final_decision']
-        if decision == 'switch':
-            maletin_final_valor = ultimo_valor if ultimo_valor is not None else maletin_jugador_valor
-            maletin_no_seleccionado_valor = maletin_jugador_valor
+        if decision == 'switch' and maletin_no_seleccionado_valor is not None:
+            maletin_final_valor = maletin_no_seleccionado_valor
         else:
             maletin_final_valor = maletin_jugador_valor
-            maletin_no_seleccionado_valor = ultimo_valor if ultimo_valor is not None else maletin_jugador_valor
 
         registrar_partida(session['username'], 'Finalizada')
 
         return render_template('result.html', 
                                result=f"Usted ha ganado ${maletin_final_valor:,.2f}.",
-                               maletin_final_valor=f"{maletin_final_valor:,.2f}",
-                               maletin_no_seleccionado_valor=f"{maletin_no_seleccionado_valor:,.2f}")
+                               maletin_final_valor=f"${maletin_final_valor:,.2f}",
+                               maletin_no_seleccionado_valor=f"${maletin_no_seleccionado_valor:,.2f}" if maletin_no_seleccionado_valor is not None else "No disponible")
 
     return render_template('final.html')
-    
+
 @app.route('/partidas')
 def partidas():
     if 'username' not in session:
@@ -152,3 +151,4 @@ def partidas():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
