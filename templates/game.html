@@ -2,52 +2,54 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Trato Hecho</title
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='games.css') }}">
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            const submitButton = document.querySelector('button[type="submit"]');
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
-                    const uncheckedCount = checkboxes.length - checkedCount;
-                    
-                    if (checkedCount >= {{ num_maletines }}) {
-                        checkboxes.forEach(box => {
-                            if (!box.checked) {
-                                box.disabled = true;
-                            }
-                        });
-                        submitButton.disabled = false;
-                    } else {
-                        checkboxes.forEach(box => box.disabled = false);
-                        submitButton.disabled = true;
-                    }
-                });
-            });
-        });
-    </script>
 </head>
 <body>
     <h1>Ronda {{ ronda }}</h1>
-    <form action="{{ url_for('game') }}" method="post">
-        <p>Seleccione {{ num_maletines }} maletines para abrir:</p>
-        {% for maletin in maletines %}
-            <input type="checkbox" id="maletin{{ maletin }}" name="maletines" value="{{ maletin + 1 }}">
-            <label for="maletin{{ maletin }}">{{ maletin + 1 }}</label>
-        {% endfor %}
-        <button type="submit" disabled>Abrir Maletines</button>
+    <p>Selecciona {{ num_maletines }} maletines:</p>
+
+    <form method="POST">
+        <input type="hidden" id="max-selections" value="{{ num_maletines }}">
+        <div class="maletines">
+            <div class="fila">
+                {% for maletin in maletines[:5] %}
+                    <label class="maletin">
+                        <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
+                        <span class="numero">{{ maletin + 1 }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            <div class="fila">
+                {% for maletin in maletines[5:10] %}
+                    <label class="maletin">
+                        <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
+                        <span class="numero">{{ maletin + 1 }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            <div class="fila">
+                {% for maletin in maletines[10:15] %}
+                    <label class="maletin">
+                        <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
+                        <span class="numero">{{ maletin + 1 }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            <div class="fila">
+                {% for maletin in maletines[15:20] %}
+                    <label class="maletin">
+                        <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
+                        <span class="numero">{{ maletin + 1 }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        <br>
+        <button type="submit" disabled>Continuar</button>
     </form>
 
-    {% if contenidos %}
-        <h2>Contenido de los Maletines Seleccionados</h2>
-        <ul>
-            {% for maletin, contenido in contenidos.items() %}
-                <li>Maletín {{ maletin }}: {{ contenido }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>
