@@ -22,7 +22,7 @@
                 {% endfor %}
             </div>
             <div class="fila">
-                {% for maletin in maletines[5:10] %}
+                {% for maletin in maletines[5:12] %}
                     <label class="maletin">
                         <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
                         <span class="numero">{{ maletin + 1 }}</span>
@@ -30,7 +30,7 @@
                 {% endfor %}
             </div>
             <div class="fila">
-                {% for maletin in maletines[10:15] %}
+                {% for maletin in maletines[12:19] %}
                     <label class="maletin">
                         <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
                         <span class="numero">{{ maletin + 1 }}</span>
@@ -38,7 +38,7 @@
                 {% endfor %}
             </div>
             <div class="fila">
-                {% for maletin in maletines[15:20] %}
+                {% for maletin in maletines[19:26] %}
                     <label class="maletin">
                         <input type="checkbox" name="maletines" value="{{ maletin + 1 }}" {% if maletin in maletines_seleccionados %}disabled{% endif %}>
                         <span class="numero">{{ maletin + 1 }}</span>
