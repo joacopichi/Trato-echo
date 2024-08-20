@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Selecciona tu Maletín</title>
@@ -7,6 +7,7 @@
 </head>
 <body>
     <h1>Selecciona tu Maletín</h1>
+
     <form action="{{ url_for('select_maletin') }}" method="post">
         <label for="maletin">Elige un maletín (1-26):</label>
         <select id="maletin" name="maletin" required>
@@ -17,6 +18,27 @@
         <br>
         <button type="submit">Seleccionar</button>
     </form>
+
+    <h2>Partidas Guardadas</h2>
+    <div class="partidas-guardadas">
+        {% if partidas_guardadas %}
+            <ul>
+                {% for partida in partidas_guardadas %}
+                    <li>
+                        <form method="POST" action="{{ url_for('continuar_partida') }}">
+                            <input type="hidden" name="partida_id" value="{{ loop.index0 }}">
+                            <strong>{{ partida.nombre }}</strong> - {{ partida.fecha }}
+                            <button type="submit">Continuar</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No tienes partidas guardadas.</p>
+        {% endif %}
+    </div>
+
+    <br>
     <a href="{{ url_for('logout') }}">Cerrar sesión</a>
 </body>
 </html>

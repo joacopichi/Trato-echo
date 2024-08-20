@@ -50,6 +50,10 @@
         <button type="submit" disabled>Continuar</button>
     </form>
 
+    <form method="POST" action="{{ url_for('guardar_partida') }}">
+        <button type="submit">Guardar Partida</button>
+    </form>
+
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>

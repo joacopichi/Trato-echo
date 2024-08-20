@@ -9,7 +9,21 @@ def registrar_partida(username, estado):
     """Registra una partida en la sesión del usuario."""
     partidas = session.setdefault('partidas', {})
     usuario_partidas = partidas.setdefault(username, [])
-    usuario_partidas.append({'estado': estado})
+
+    partida = {
+        'estado': estado,
+        'ronda': session.get('ronda'),
+        'num_maletines': session.get('num_maletines'),
+        'maletin_jugador': session.get('maletin_jugador'),
+        'maletines': session.get('maletines'),
+        'maletines_abiertos': session.get('maletines_abiertos'),
+        'maletines_seleccionados': session.get('maletines_seleccionados'),
+        'valores': session.get('valores'),
+        'valores_restantes': session.get('valores_restantes'),
+        'oferta': session.get('oferta')
+    }
+    usuario_partidas.append(partida)
+    session['partidas'] = partidas
 
 def inicializar_juego():
     """Inicializa los valores del juego en la sesión."""

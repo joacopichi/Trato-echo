@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from utiles import calcular_oferta, registrar_partida, inicializar_juego
+from utiles import calcular_oferta, inicializar_juego
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -63,7 +64,41 @@ def select_maletin():
 
         return redirect(url_for('game'))
 
-    return render_template('select_maletin.html')
+    partidas_guardadas = session.get('partidas', {}).get(session['username'], [])
+
+    return render_template('select_maletin.html', partidas_guardadas=partidas_guardadas)
+
+def registrar_partida(username, estado, eliminar=False):
+    """Registra una partida en la sesión del usuario."""
+    partidas = session.setdefault('partidas', {})
+    usuario_partidas = partidas.setdefault(username, [])
+
+    if eliminar:
+        if usuario_partidas:
+            usuario_partidas.pop()
+        session['partidas'] = partidas
+        return
+
+    num_partida = len(usuario_partidas) + 1
+    fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    nombre_partida = f"Partida {num_partida} - {fecha_hora}"
+
+    partida = {
+        'nombre': nombre_partida,
+        'estado': estado,
+        'ronda': session.get('ronda'),
+        'num_maletines': session.get('num_maletines'),
+        'maletin_jugador': session.get('maletin_jugador'),
+        'maletines': session.get('maletines'),
+        'maletines_abiertos': session.get('maletines_abiertos'),
+        'maletines_seleccionados': session.get('maletines_seleccionados'),
+        'valores': session.get('valores'),
+        'valores_restantes': session.get('valores_restantes'),
+        'oferta': session.get('oferta')
+    }
+
+    usuario_partidas.append(partida)
+    session['partidas'] = partidas
 
 @app.route('/game', methods=['GET', 'POST'])
 def game():
@@ -108,6 +143,7 @@ def offer():
     if decision == 'deal':
         maletin_jugador_valor = session['valores'][session['maletin_jugador']]
         oferta_aceptada = session['oferta']
+        registrar_partida(session['username'], 'Finalizada', eliminar=True)
         return render_template('result.html', 
                                result=f"Ha aceptado la oferta de ${oferta_aceptada}.")
     return redirect(url_for('final' if session['ronda'] > 10 else 'game'))
@@ -132,7 +168,7 @@ def final():
         else:
             maletin_final_valor = maletin_jugador_valor
 
-        registrar_partida(session['username'], 'Finalizada')
+        registrar_partida(session['username'], 'Finalizada', eliminar=True)
 
         return render_template('result.html', 
                                result=f"Usted ha ganado ${maletin_final_valor:,.2f}.",
@@ -141,14 +177,56 @@ def final():
 
     return render_template('final.html')
 
-@app.route('/partidas')
+@app.route('/guardar_partida', methods=['POST'])
+def guardar_partida():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    registrar_partida(session['username'], 'Pendiente')
+    flash('Partida guardada con éxito.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/continuar_partida', methods=['POST'])
+def continuar_partida():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    partida_id = int(request.form['partida_id'])
+    partidas = session.get('partidas', {}).get(session['username'], [])
+    
+    if partida_id < len(partidas):
+        partida = partidas[partida_id]
+        session.update(partida)  
+        return redirect(url_for('game'))
+
+    flash('La partida seleccionada no existe o no es válida.', 'error')
+    return redirect(url_for('select_maletin'))
+
+@app.route('/partidas', methods=['GET', 'POST'])
 def partidas():
     if 'username' not in session:
         return redirect(url_for('login'))
     
     partidas_usuario = session.get('partidas', {}).get(session['username'], [])
+
+    if request.method == 'POST':
+        partida_index = int(request.form['partida'])
+        partida_seleccionada = partidas_usuario[partida_index]
+
+        session['ronda'] = partida_seleccionada['ronda']
+        session['num_maletines'] = partida_seleccionada['num_maletines']
+        session['maletin_jugador'] = partida_seleccionada['maletin_jugador']
+        session['maletines'] = partida_seleccionada['maletines']
+        session['maletines_abiertos'] = partida_seleccionada['maletines_abiertos']
+        session['maletines_seleccionados'] = partida_seleccionada['maletines_seleccionados']
+        session['valores'] = partida_seleccionada['valores']
+        session['valores_restantes'] = partida_seleccionada['valores_restantes']
+        session['oferta'] = partida_seleccionada['oferta']
+
+        return redirect(url_for('game'))
+
     return render_template('partidas.html', partidas=partidas_usuario)
 
 if __name__ == '__main__':
     app.run(debug=True)
-
+    
