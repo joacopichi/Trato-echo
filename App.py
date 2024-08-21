@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 from models.user import db, User
-from models.Gsesion import GameSession
+from models.Gsesion import GSession
 from utiles import calcular_oferta, inicializar_juego
 import random
 from datetime import datetime

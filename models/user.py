@@ -6,4 +6,4 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    partidas = db.relationship('GameSession', backref='user', lazy=True)
+    partidas = db.relationship('GSession', backref='user', lazy=True)
