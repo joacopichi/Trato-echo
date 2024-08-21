@@ -1,11 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from config import Config
+from models.user import db, User
+from models.Gsesion import GameSession
 from utiles import calcular_oferta, inicializar_juego
 import random
 from datetime import datetime
+from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.secret_key = 'secret_key'
+app.config.from_object(Config)
+db.init_app(app)
+
+migrate = Migrate(app, db)
 
 @app.route('/')
 def index():

@@ -7,22 +7,33 @@
 </head>
 <body>
     <h1>Registro de Partidas de {{ session['username'] }}</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for index, estado in enumerate(partidas, start=1) %}
+    
+    <form method="POST" action="{{ url_for('continuar_partida') }}">
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ index }}</td>
-                    <td>{{ estado }}</td>
+                    <th>#</th>
+                    <th>Nombre de la Partida</th>
+                    <th>Estado</th>
+                    <th>Seleccionar</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% for index, partida in enumerate(partidas) %}
+                    <tr>
+                        <td>{{ index + 1 }}</td>
+                        <td>{{ partida['nombre'] }}</td>
+                        <td>{{ partida['estado'] }}</td>
+                        <td>
+                            <input type="radio" name="partida_id" value="{{ index }}" required>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit">Continuar Partida</button>
+    </form>
+    
     <a href="{{ url_for('index') }}">Volver al Inicio</a>
 </body>
 </html>
