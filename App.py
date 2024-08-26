@@ -1,16 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-from models.user import db, User
+from models.user import User
 from models.Gsesion import GSession
 from utiles import calcular_oferta, inicializar_juego
 import random
 from datetime import datetime
 from flask_migrate import Migrate
+import db
 
 app = Flask(__name__)
 app.config.from_object(Config)
-db.init_app(app)
 
 migrate = Migrate(app, db)
 
