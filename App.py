@@ -1,18 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
+from db import init_db
 from models.user import User
 from models.Gsesion import GSession
 from utiles import calcular_oferta, inicializar_juego
 import random
 from datetime import datetime
-from flask_migrate import Migrate
-import db
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-migrate = Migrate(app, db)
+init_db(app)
 
 @app.route('/')
 def index():
@@ -206,34 +205,8 @@ def continuar_partida():
         session.update(partida)  
         return redirect(url_for('game'))
 
-    flash('La partida seleccionada no existe o no es válida.', 'error')
-    return redirect(url_for('select_maletin'))
-
-@app.route('/partidas', methods=['GET', 'POST'])
-def partidas():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    
-    partidas_usuario = session.get('partidas', {}).get(session['username'], [])
-
-    if request.method == 'POST':
-        partida_index = int(request.form['partida'])
-        partida_seleccionada = partidas_usuario[partida_index]
-
-        session['ronda'] = partida_seleccionada['ronda']
-        session['num_maletines'] = partida_seleccionada['num_maletines']
-        session['maletin_jugador'] = partida_seleccionada['maletin_jugador']
-        session['maletines'] = partida_seleccionada['maletines']
-        session['maletines_abiertos'] = partida_seleccionada['maletines_abiertos']
-        session['maletines_seleccionados'] = partida_seleccionada['maletines_seleccionados']
-        session['valores'] = partida_seleccionada['valores']
-        session['valores_restantes'] = partida_seleccionada['valores_restantes']
-        session['oferta'] = partida_seleccionada['oferta']
-
-        return redirect(url_for('game'))
-
-    return render_template('partidas.html', partidas=partidas_usuario)
+    flash('No se pudo encontrar la partida seleccionada.', 'error')
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
